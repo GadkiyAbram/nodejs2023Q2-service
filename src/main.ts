@@ -3,9 +3,12 @@ import { AppModule } from './modules/app.module';
 import { SwaggerModule } from '@nestjs/swagger';
 import { readFile } from 'fs/promises';
 import { load as loadYaml } from 'js-yaml';
+import { config } from 'dotenv';
 import * as process from 'process';
 
-const PORT: number = parseInt(process.env.PORT as string, 10) || 3000;
+config();
+
+const PORT: number = parseInt(process.env.PORT as string, 10) || 300;
 
 async function setupSwagger(app) {
   SwaggerModule.setup(

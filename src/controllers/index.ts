@@ -1,4 +1,6 @@
 import { AppController } from './app.controller';
 import { UsersController } from './users.controller';
+import { AuthController } from './auth.controller';
+import { ArtistsController } from './artists.controller';
 
-export { AppController, UsersController };
+export { AppController, UsersController, AuthController, ArtistsController };

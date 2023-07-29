@@ -1,17 +1,17 @@
 export const usersRoutes = {
-  getAll: '/user',
-  getById: (userId) => `/user/${userId}`,
-  create: '/user',
-  update: (userId) => `/user/${userId}`,
-  delete: (userId) => `/user/${userId}`,
+  getAll: '/users',
+  getById: (userId) => `/users/${userId}`,
+  create: '/users',
+  update: (userId) => `/users/${userId}`,
+  delete: (userId) => `/users/${userId}`,
 };
 
 export const artistsRoutes = {
-  getAll: '/artist',
-  getById: (artistId) => `/artist/${artistId}`,
-  create: '/artist',
-  update: (artistId) => `/artist/${artistId}`,
-  delete: (artistId) => `/artist/${artistId}`,
+  getAll: '/artists',
+  getById: (artistId) => `/artists/${artistId}`,
+  create: '/artists',
+  update: (artistId) => `/artists/${artistId}`,
+  delete: (artistId) => `/artists/${artistId}`,
 };
 
 export const albumsRoutes = {

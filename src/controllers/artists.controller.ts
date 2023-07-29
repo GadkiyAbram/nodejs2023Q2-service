@@ -8,23 +8,23 @@ import {
   Put,
   Res,
 } from '@nestjs/common';
-import { UsersService } from '../services';
-import { CreateUserDto, UpdatePasswordDto } from '../interfaces/dtos';
-import { isUUID } from 'class-validator';
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { isUUID } from 'class-validator';
+import { Artist } from '../interfaces';
+import { ArtistsService } from '../services';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
-@Controller('users')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+@Controller('artists')
+export class ArtistsController {
+  constructor(private readonly artistsService: ArtistsService) {}
 
   @Get()
   async getAll(@Res() res: Response): Promise<Response> {
-    const users = await this.usersService.getAll();
+    const artists = await this.artistsService.getAll();
 
-    return res.header(HEADERS).status(StatusCodes.OK).json(users);
+    return res.header(HEADERS).status(StatusCodes.OK).json(artists);
   }
 
   @Get(':id')
@@ -39,10 +39,11 @@ export class UsersController {
         .json({ msg: 'Invalid UUID provided' });
     }
 
-    const user = await this.usersService.getById(id);
+    const artist = await this.artistsService.getById(id);
+    console.log(artist);
 
-    if (user) {
-      return res.header(HEADERS).status(StatusCodes.OK).json(user);
+    if (artist) {
+      return res.header(HEADERS).status(StatusCodes.OK).json(artist);
     }
 
     return res
@@ -53,18 +54,18 @@ export class UsersController {
 
   @Post()
   async create(
-    @Body() userDto: CreateUserDto,
+    @Body() newArtist: Artist,
     @Res() res: Response,
   ): Promise<Response> {
-    if (!userDto.login || !userDto.password) {
+    if (!newArtist.name || !Boolean(newArtist.grammy)) {
       return res
         .header(HEADERS)
         .status(StatusCodes.BAD_REQUEST)
         .json({ msg: 'Empty required fields' });
     }
-    const user = await this.usersService.createUser(userDto);
+    const artist = await this.artistsService.createArtist(newArtist);
 
-    return res.header(HEADERS).status(StatusCodes.CREATED).json(user);
+    return res.header(HEADERS).status(StatusCodes.CREATED).json(artist);
   }
 
   @Delete(':id')
@@ -81,7 +82,7 @@ export class UsersController {
         .json({ msg: 'Invalid UUID' });
     }
 
-    const result = await this.usersService.deleteUser(id);
+    const result = await this.artistsService.deleteArtist(id);
 
     if (!result) {
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();
@@ -96,20 +97,23 @@ export class UsersController {
   @Put(':id')
   async put(
     @Param('id') id: string,
-    @Body() userDto: UpdatePasswordDto,
+    @Body() artist: Artist,
     @Res() res: Response,
   ): Promise<Response> {
+    const { name } = artist;
     const validUuid = isUUID(id);
 
-    if (!validUuid || !userDto.newPassword || !userDto.oldPassword) {
+    if (!validUuid || typeof name === 'number') {
       return res
         .header(HEADERS)
         .status(StatusCodes.BAD_REQUEST)
-        .json({ msg: 'Invalid UUID' });
+        .json({ msg: 'Invalid DTO' });
     }
 
-    const result: { id: string; login: string } | number =
-      await this.usersService.updateUser(id, userDto);
+    const result: Artist | number = await this.artistsService.updateArtist(
+      id,
+      artist,
+    );
 
     if (!result) {
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();
