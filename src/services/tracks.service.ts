@@ -76,15 +76,36 @@ export class TracksService {
     );
   }
 
+  async getByAlbumsId(albumId: string): Promise<Track[] | []> {
+    const tracksAll = await this.client.findAll();
+
+    return (
+      tracksAll
+        ?.map(({ track }) => track)
+        .filter(({ albumId: trackAlbumId }) => trackAlbumId === albumId) || []
+    );
+  }
+
   @OnEvent('artist.deleted')
-  async updateAllTracks({ artistId }: { artistId: string }) {
-    console.log('event');
+  async updateAllTracksWhenArtistDeleted({ artistId }: { artistId: string }) {
     const tracksByArtist = await this.getByArtistId(artistId);
 
     return tracksByArtist.map((track) =>
       this.client.updateById({
         ...track,
         artistId: null,
+      }),
+    );
+  }
+
+  @OnEvent('album.deleted')
+  async updateAllTracksWhenAlbumDeleted({ albumId }: { albumId: string }) {
+    const tracksByAlbum = await this.getByAlbumsId(albumId);
+
+    return tracksByAlbum.map((track) =>
+      this.client.updateById({
+        ...track,
+        albumId: null,
       }),
     );
   }

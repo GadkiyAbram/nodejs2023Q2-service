@@ -15,11 +15,11 @@ export const artistsRoutes = {
 };
 
 export const albumsRoutes = {
-  getAll: '/album',
-  getById: (albumId) => `/album/${albumId}`,
-  create: '/album',
-  update: (albumId) => `/album/${albumId}`,
-  delete: (albumId) => `/album/${albumId}`,
+  getAll: '/albums',
+  getById: (albumId) => `/albums/${albumId}`,
+  create: '/albums',
+  update: (albumId) => `/albums/${albumId}`,
+  delete: (albumId) => `/albums/${albumId}`,
 };
 
 export const tracksRoutes = {

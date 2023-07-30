@@ -8,23 +8,23 @@ import {
   Put,
   Res,
 } from '@nestjs/common';
-import { TracksService } from '../services';
+import { AlbumsService } from '../services';
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { isUUID } from 'class-validator';
-import { Track } from '../interfaces';
+import { Album } from '../interfaces';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
-@Controller('tracks')
-export class TracksController {
-  constructor(private readonly tracksService: TracksService) {}
+@Controller('albums')
+export class AlbumsController {
+  constructor(private readonly albumsService: AlbumsService) {}
 
   @Get()
   async getAll(@Res() res: Response): Promise<Response> {
-    const tracks = await this.tracksService.getAll();
+    const albums = await this.albumsService.getAll();
 
-    return res.header(HEADERS).status(StatusCodes.OK).json(tracks);
+    return res.header(HEADERS).status(StatusCodes.OK).json(albums);
   }
 
   @Get(':id')
@@ -39,33 +39,37 @@ export class TracksController {
         .json({ msg: 'Invalid UUID provided' });
     }
 
-    const track = await this.tracksService.getById(id);
+    const album: Album = await this.albumsService.getById(id);
 
-    if (track) {
-      return res.header(HEADERS).status(StatusCodes.OK).json(track);
+    if (album) {
+      return res.header(HEADERS).status(StatusCodes.OK).json(album);
     }
 
     return res
       .header(HEADERS)
       .status(StatusCodes.NOT_FOUND)
-      .json({ msg: 'Track not found' });
+      .json({ msg: 'Album not found' });
   }
 
   @Post()
   async create(
-    @Body() newTrack: Track,
+    @Body() newAlbum: Album,
     @Res() res: Response,
   ): Promise<Response> {
-    const { name, duration } = newTrack;
-    if (!name || !duration || typeof duration !== 'number') {
+    const { name, year, artistId } = newAlbum;
+    if (
+      (newAlbum.artistId && !isUUID(artistId)) ||
+      typeof name !== 'string' ||
+      typeof year !== 'number'
+    ) {
       return res
         .header(HEADERS)
         .status(StatusCodes.BAD_REQUEST)
-        .json({ msg: 'Empty required fields' });
+        .json({ msg: 'Invalid incoming data' });
     }
-    const track = await this.tracksService.createTrack(newTrack);
+    const album = await this.albumsService.createAlbum(newAlbum);
 
-    return res.header(HEADERS).status(StatusCodes.CREATED).json(track);
+    return res.header(HEADERS).status(StatusCodes.CREATED).json(album);
   }
 
   @Delete(':id')
@@ -82,7 +86,7 @@ export class TracksController {
         .json({ msg: 'Invalid UUID' });
     }
 
-    const result = await this.tracksService.deleteTrack(id);
+    const result = await this.albumsService.deleteAlbum(id);
 
     if (!result) {
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();
@@ -97,22 +101,22 @@ export class TracksController {
   @Put(':id')
   async put(
     @Param('id') id: string,
-    @Body() track: Track,
+    @Body() album: Album,
     @Res() res: Response,
   ): Promise<Response> {
-    const { name } = track;
     const validUuid = isUUID(id);
+    const { name, year } = album;
 
-    if (!validUuid || !name || typeof name !== 'string') {
+    if (!validUuid || typeof name !== 'string' || typeof year !== 'number') {
       return res
         .header(HEADERS)
         .status(StatusCodes.BAD_REQUEST)
         .json({ msg: 'Invalid DTO' });
     }
 
-    const result: Track | number = await this.tracksService.updateTrack(
+    const result: Album | number = await this.albumsService.updateAlbum(
       id,
-      track,
+      album,
     );
 
     if (!result) {
