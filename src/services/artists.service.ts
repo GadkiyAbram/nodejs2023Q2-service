@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { artistsTable } from '../../db/in-memory';
-import { Artist, User } from '../interfaces';
+import { Artist } from '../interfaces';
 import { v4 as uuidV4 } from 'uuid';
-import { UpdatePasswordDto } from '../interfaces/dtos';
-import { StatusCodes } from 'http-status-codes';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ArtistsService {
-  constructor(private client: artistsTable) {}
+  constructor(
+    private client: artistsTable,
+    private _artistsServiceEmitter: EventEmitter2,
+  ) {}
 
   async getAll(): Promise<{ id: string; artist: Artist }[]> {
     return this.client.findAll();
@@ -39,7 +41,13 @@ export class ArtistsService {
       return 0;
     }
 
-    return this.client.deleteById(artistId);
+    const deleted = (await this.client.deleteById(artistId)) || 0;
+
+    if (deleted) {
+      this._artistsServiceEmitter.emit('artist.deleted', { artistId });
+    }
+
+    return deleted;
   }
 
   async updateArtist(
@@ -58,7 +66,7 @@ export class ArtistsService {
       grammy: newData.grammy,
     };
 
-    const updated = this.client.updateById(updatedArtist);
+    const updated = await this.client.updateById(updatedArtist);
 
     if (updated) {
       return updatedArtist;

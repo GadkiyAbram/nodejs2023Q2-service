@@ -1,4 +1,4 @@
-import { Artist, User } from "../../src/interfaces";
+import { Artist } from '../../src/interfaces';
 
 export class ArtistsTable {
   _table: Map<string, Artist>;

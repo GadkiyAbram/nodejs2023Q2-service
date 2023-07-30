@@ -23,11 +23,11 @@ export const albumsRoutes = {
 };
 
 export const tracksRoutes = {
-  getAll: '/track',
-  getById: (trackId) => `/track/${trackId}`,
-  create: '/track',
-  update: (trackId) => `/track/${trackId}`,
-  delete: (trackId) => `/track/${trackId}`,
+  getAll: '/tracks',
+  getById: (trackId) => `/tracks/${trackId}`,
+  create: '/tracks',
+  update: (trackId) => `/tracks/${trackId}`,
+  delete: (trackId) => `/tracks/${trackId}`,
 };
 
 export const favoritesRoutes = {

@@ -8,23 +8,23 @@ import {
   Put,
   Res,
 } from '@nestjs/common';
+import { TracksService } from '../services';
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { isUUID } from 'class-validator';
-import { Artist } from '../interfaces';
-import { ArtistsService } from '../services';
+import { Track } from '../interfaces';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
-@Controller('artists')
-export class ArtistsController {
-  constructor(private readonly artistsService: ArtistsService) {}
+@Controller('tracks')
+export class TracksController {
+  constructor(private readonly tracksService: TracksService) {}
 
   @Get()
   async getAll(@Res() res: Response): Promise<Response> {
-    const artists = await this.artistsService.getAll();
+    const tracks = await this.tracksService.getAll();
 
-    return res.header(HEADERS).status(StatusCodes.OK).json(artists);
+    return res.header(HEADERS).status(StatusCodes.OK).json(tracks);
   }
 
   @Get(':id')
@@ -39,32 +39,33 @@ export class ArtistsController {
         .json({ msg: 'Invalid UUID provided' });
     }
 
-    const artist = await this.artistsService.getById(id);
+    const track = await this.tracksService.getById(id);
 
-    if (artist) {
-      return res.header(HEADERS).status(StatusCodes.OK).json(artist);
+    if (track) {
+      return res.header(HEADERS).status(StatusCodes.OK).json(track);
     }
 
     return res
       .header(HEADERS)
       .status(StatusCodes.NOT_FOUND)
-      .json({ msg: 'Artist not found' });
+      .json({ msg: 'Track not found' });
   }
 
   @Post()
   async create(
-    @Body() newArtist: Artist,
+    @Body() newATrack: Track,
     @Res() res: Response,
   ): Promise<Response> {
-    if (!newArtist.name || !Boolean(newArtist.grammy)) {
+    const { name, duration } = newATrack;
+    if (!name || !duration || typeof duration !== 'number') {
       return res
         .header(HEADERS)
         .status(StatusCodes.BAD_REQUEST)
         .json({ msg: 'Empty required fields' });
     }
-    const artist = await this.artistsService.createArtist(newArtist);
+    const track = await this.tracksService.createTrack(newATrack);
 
-    return res.header(HEADERS).status(StatusCodes.CREATED).json(artist);
+    return res.header(HEADERS).status(StatusCodes.CREATED).json(track);
   }
 
   @Delete(':id')
@@ -81,7 +82,7 @@ export class ArtistsController {
         .json({ msg: 'Invalid UUID' });
     }
 
-    const result = await this.artistsService.deleteArtist(id);
+    const result = await this.tracksService.deleteTrack(id);
 
     if (!result) {
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();
@@ -96,22 +97,22 @@ export class ArtistsController {
   @Put(':id')
   async put(
     @Param('id') id: string,
-    @Body() artist: Artist,
+    @Body() track: Track,
     @Res() res: Response,
   ): Promise<Response> {
-    const { name } = artist;
+    const { name } = track;
     const validUuid = isUUID(id);
 
-    if (!validUuid || typeof name === 'number') {
+    if (!validUuid || !name || typeof name !== 'string') {
       return res
         .header(HEADERS)
         .status(StatusCodes.BAD_REQUEST)
         .json({ msg: 'Invalid DTO' });
     }
 
-    const result: Artist | number = await this.artistsService.updateArtist(
+    const result: Track | number = await this.tracksService.updateTrack(
       id,
-      artist,
+      track,
     );
 
     if (!result) {
