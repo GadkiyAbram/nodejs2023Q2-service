@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { ArtistsService } from './artists.service';
 import { TracksService } from './tracks.service';
 import { AlbumsService } from './albums.service';
+import { FavoritesService } from './favorites.service';
 
 export {
   AppService,
@@ -12,4 +13,5 @@ export {
   ArtistsService,
   TracksService,
   AlbumsService,
+  FavoritesService,
 };

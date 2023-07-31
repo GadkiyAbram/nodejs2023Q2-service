@@ -5,6 +5,7 @@ import {
   UserModule,
   TracksModule,
   AlbumsModule,
+  FavoritesModule,
 } from '../modules';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
@@ -15,6 +16,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     ArtistsModule,
     TracksModule,
     AlbumsModule,
+    FavoritesModule,
     EventEmitterModule.forRoot(),
   ],
 })

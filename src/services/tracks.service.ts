@@ -2,11 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { v4 as uuidV4 } from 'uuid';
 import { tracksTable } from '../../db/in-memory';
 import { Track } from '../interfaces';
-import { OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class TracksService {
-  constructor(private client: tracksTable) {}
+  constructor(
+    private client: tracksTable,
+    private _tracksServiceEmitter: EventEmitter2,
+  ) {}
 
   async getAll(): Promise<{ id: string; track: Track }[]> {
     return this.client.findAll();
@@ -38,7 +41,13 @@ export class TracksService {
       return 0;
     }
 
-    return this.client.deleteById(trackId);
+    const deleted = await this.client.deleteById(trackId);
+
+    if (deleted) {
+      this._tracksServiceEmitter.emit('track.deleted', { trackId });
+    }
+
+    return deleted;
   }
 
   async updateTrack(trackId: string, newData: Track): Promise<Track | number> {
