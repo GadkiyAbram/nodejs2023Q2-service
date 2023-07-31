@@ -16,7 +16,7 @@ import { Album } from '../interfaces';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
-@Controller('albums')
+@Controller('album')
 export class AlbumsController {
   constructor(private readonly albumsService: AlbumsService) {}
 

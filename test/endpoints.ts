@@ -1,33 +1,33 @@
 export const usersRoutes = {
-  getAll: '/users',
-  getById: (userId) => `/users/${userId}`,
-  create: '/users',
-  update: (userId) => `/users/${userId}`,
-  delete: (userId) => `/users/${userId}`,
+  getAll: '/user',
+  getById: (userId) => `/user/${userId}`,
+  create: '/user',
+  update: (userId) => `/user/${userId}`,
+  delete: (userId) => `/user/${userId}`,
 };
 
 export const artistsRoutes = {
-  getAll: '/artists',
-  getById: (artistId) => `/artists/${artistId}`,
-  create: '/artists',
-  update: (artistId) => `/artists/${artistId}`,
-  delete: (artistId) => `/artists/${artistId}`,
+  getAll: '/artist',
+  getById: (artistId) => `/artist/${artistId}`,
+  create: '/artist',
+  update: (artistId) => `/artist/${artistId}`,
+  delete: (artistId) => `/artist/${artistId}`,
 };
 
 export const albumsRoutes = {
-  getAll: '/albums',
-  getById: (albumId) => `/albums/${albumId}`,
-  create: '/albums',
-  update: (albumId) => `/albums/${albumId}`,
-  delete: (albumId) => `/albums/${albumId}`,
+  getAll: '/album',
+  getById: (albumId) => `/album/${albumId}`,
+  create: '/album',
+  update: (albumId) => `/album/${albumId}`,
+  delete: (albumId) => `/album/${albumId}`,
 };
 
 export const tracksRoutes = {
-  getAll: '/tracks',
-  getById: (trackId) => `/tracks/${trackId}`,
-  create: '/tracks',
-  update: (trackId) => `/tracks/${trackId}`,
-  delete: (trackId) => `/tracks/${trackId}`,
+  getAll: '/track',
+  getById: (trackId) => `/track/${trackId}`,
+  create: '/track',
+  update: (trackId) => `/track/${trackId}`,
+  delete: (trackId) => `/track/${trackId}`,
 };
 
 export const favoritesRoutes = {

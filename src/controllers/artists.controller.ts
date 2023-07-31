@@ -16,7 +16,7 @@ import { ArtistsService } from '../services';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
-@Controller('artists')
+@Controller('artist')
 export class ArtistsController {
   constructor(private readonly artistsService: ArtistsService) {}
 

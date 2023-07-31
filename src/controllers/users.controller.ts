@@ -16,7 +16,7 @@ import { StatusCodes } from 'http-status-codes';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
-@Controller('users')
+@Controller('user')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

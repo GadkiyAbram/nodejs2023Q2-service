@@ -16,7 +16,7 @@ import { Track } from '../interfaces';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
-@Controller('tracks')
+@Controller('track')
 export class TracksController {
   constructor(private readonly tracksService: TracksService) {}
 
