@@ -11,10 +11,21 @@ datasource db {
 }
 
 model User {
+  @@map("users")
+
   id String @id
   login String
   password String
-  version Int @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  version Int @default(1)
+  createdAt Int
+  updatedAt Int
+}
+
+model Album {
+  @@map("albums")
+
+  id String @id
+  name String
+  year Int
+  artistId String?
 }
