@@ -13,7 +13,6 @@ import { CreateUserDto, UpdatePasswordDto } from '../interfaces/dtos';
 import { isUUID } from 'class-validator';
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { User } from '../interfaces';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
