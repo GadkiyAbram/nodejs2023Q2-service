@@ -8,7 +8,7 @@ import * as process from 'process';
 
 config();
 
-const PORT: number = parseInt(process.env.PORT as string, 10) || 300;
+const PORT: number = parseInt(process.env.PORT as string, 10) || 3000;
 
 async function setupSwagger(app) {
   SwaggerModule.setup(

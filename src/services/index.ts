@@ -6,11 +6,9 @@ import { TracksService } from './tracks.service';
 import { AlbumsService } from './albums.service';
 import { FavoritesService } from './favorites.service';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from './prisma.service';
 
 export {
   ConfigService,
-  PrismaService,
   AppService,
   UsersService,
   AuthService,

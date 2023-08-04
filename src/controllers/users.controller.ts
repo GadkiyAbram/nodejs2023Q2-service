@@ -13,6 +13,7 @@ import { CreateUserDto, UpdatePasswordDto } from '../interfaces/dtos';
 import { isUUID } from 'class-validator';
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { User } from '../interfaces';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
@@ -24,7 +25,15 @@ export class UsersController {
   async getAll(@Res() res: Response): Promise<Response> {
     const users = await this.usersService.getAll();
 
-    return res.header(HEADERS).status(StatusCodes.OK).json(users);
+    const result = users.map((user) => {
+      return {
+        ...user,
+        createdAt: String(user.createdAt),
+        updatedAt: String(user.updatedAt),
+      };
+    });
+
+    return res.header(HEADERS).status(StatusCodes.OK).json(result);
   }
 
   @Get(':id')
@@ -42,7 +51,13 @@ export class UsersController {
     const user = await this.usersService.getById(id);
 
     if (user) {
-      return res.header(HEADERS).status(StatusCodes.OK).json(user);
+      const result = {
+        ...user,
+        createdAt: String(user.createdAt),
+        updatedAt: String(user.updatedAt),
+      };
+
+      return res.header(HEADERS).status(StatusCodes.OK).json(result);
     }
 
     return res
@@ -64,7 +79,13 @@ export class UsersController {
     }
     const user = await this.usersService.createUser(userDto);
 
-    return res.header(HEADERS).status(StatusCodes.CREATED).json(user);
+    const result = {
+      ...user,
+      createdAt: String(user.createdAt),
+      updatedAt: String(user.updatedAt),
+    };
+
+    return res.header(HEADERS).status(StatusCodes.CREATED).json(result);
   }
 
   @Delete(':id')

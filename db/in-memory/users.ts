@@ -11,8 +11,8 @@ export class UsersTable {
     id: string;
     login: string;
     version: number;
-    createdAt: number;
-    updatedAt: number;
+    createdAt: bigint;
+    updatedAt: bigint;
   }> {
     this._table.set(user.id, user);
 
@@ -42,11 +42,11 @@ export class UsersTable {
   }
 
   async updateById(user: User): Promise<{
-    createdAt: number;
     id: string;
     login: string;
     version: number;
-    updatedAt: number;
+    createdAt: bigint;
+    updatedAt: bigint;
   }> {
     this._table.set(user.id, user);
 
