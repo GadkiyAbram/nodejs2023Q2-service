@@ -29,3 +29,39 @@ model Album {
   year Int
   artistId String?
 }
+
+model Artist {
+  @@map("artists")
+
+  id String @id
+  name String
+  grammy Boolean
+}
+
+model Track {
+  @@map("tracks")
+
+  id String @id
+  name String
+  artistId String?
+  albumId String?
+  duraction Int
+}
+
+model FavoriteArtists {
+  @@map("favartists")
+
+  name String @id
+}
+
+model FavoriteAlbums {
+  @@map("favalbums")
+
+  name String @id
+}
+
+model FavoriteTracks {
+  @@map("favtracks")
+
+  name String @id
+}

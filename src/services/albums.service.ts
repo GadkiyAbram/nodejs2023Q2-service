@@ -1,34 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { albumsTable } from '../../db/in-memory';
-import { Album, Track } from '../interfaces';
+import { Album } from '../interfaces';
 import { v4 as uuidV4 } from 'uuid';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AlbumsService {
   constructor(
-    private client: albumsTable,
+    private client: PrismaService,
     private _albumsServiceEmitter: EventEmitter2,
   ) {}
 
-  async getAll(): Promise<{ id: string; album: Album }[]> {
-    return this.client.findAll();
+  async getAll(): Promise<Album[]> {
+    return this.client.album.findMany();
   }
 
-  async getById(id: string): Promise<Album> {
-    return (await this.client.findById(id)) || null;
+  async getById(id: string): Promise<Album | null> {
+    return (
+      (await this.client.album.findUnique({
+        where: { id },
+      })) || null
+    );
   }
 
   async createAlbum(album: Album): Promise<Album | number> {
     const albumId: string = uuidV4();
 
-    const created: Map<string, Album> = await this.client.insert({
-      ...album,
-      id: albumId,
+    const created: Album = await this.client.album.create({
+      data: {
+        ...album,
+        id: albumId,
+      },
     });
 
     if (created) {
-      return this.client.findById(albumId);
+      return this.client.album.findUnique({ where: { id: albumId } });
     }
 
     return 0;
@@ -41,13 +47,15 @@ export class AlbumsService {
       return 0;
     }
 
-    const deleted = await this.client.deleteById(albumId);
+    const deleted = await this.client.album.delete({ where: { id: albumId } });
 
     if (deleted) {
       this._albumsServiceEmitter.emit('album.deleted', { albumId });
+
+      return true;
     }
 
-    return deleted;
+    return 0;
   }
 
   async updateAlbum(albumId: string, newData: Album): Promise<Album | number> {
@@ -64,7 +72,14 @@ export class AlbumsService {
       artistId: newData.artistId || null,
     };
 
-    const updated = await this.client.updateById(updatedAlbum);
+    const updated = await this.client.album.update({
+      where: {
+        id: albumId,
+      },
+      data: {
+        ...album,
+      },
+    });
 
     if (updated) {
       return updatedAlbum;
@@ -73,26 +88,26 @@ export class AlbumsService {
     return 0;
   }
 
-  async getByArtistId(artistId: string): Promise<Album[] | []> {
-    const albumsAll = await this.client.findAll();
-
-    return (
-      albumsAll
-        ?.map(({ album }) => album)
-        .filter(({ artistId: trackArtistId }) => trackArtistId === artistId) ||
-      []
-    );
-  }
-
-  @OnEvent('artist.deleted')
-  async updateAlbumsWhenArtistDeleted({ artistId }: { artistId: string }) {
-    const tracksByArtist = await this.getByArtistId(artistId);
-
-    return tracksByArtist.map((track) =>
-      this.client.updateById({
-        ...track,
-        artistId: null,
-      }),
-    );
-  }
+  // async getByArtistId(artistId: string): Promise<Album[] | []> {
+  //   const albumsAll = await this.client.findAll();
+  //
+  //   return (
+  //     albumsAll
+  //       ?.map(({ album }) => album)
+  //       .filter(({ artistId: trackArtistId }) => trackArtistId === artistId) ||
+  //     []
+  //   );
+  // }
+  //
+  // @OnEvent('artist.deleted')
+  // async updateAlbumsWhenArtistDeleted({ artistId }: { artistId: string }) {
+  //   const tracksByArtist = await this.getByArtistId(artistId);
+  //
+  //   return tracksByArtist.map((track) =>
+  //     this.client.updateById({
+  //       ...track,
+  //       artistId: null,
+  //     }),
+  //   );
+  // }
 }
