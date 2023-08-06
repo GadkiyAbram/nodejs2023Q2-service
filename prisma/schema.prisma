@@ -45,7 +45,7 @@ model Track {
   name String
   artistId String?
   albumId String?
-  duraction Int
+  duration Int
 }
 
 model FavoriteArtists {

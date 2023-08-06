@@ -1,53 +1,67 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuidV4 } from 'uuid';
-import { tracksTable } from '../../db/in-memory';
 import { Track } from '../interfaces';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TracksService {
   constructor(
-    private client: tracksTable,
+    private client: PrismaService,
     private _tracksServiceEmitter: EventEmitter2,
   ) {}
 
-  async getAll(): Promise<{ id: string; track: Track }[]> {
-    return this.client.findAll();
+  async getAll(): Promise<Track[] | []> {
+    return this.client.track.findMany();
   }
 
   async getById(id: string): Promise<Track | null> {
-    return (await this.client.findById(id)) || null;
+    return (
+      (await this.client.track.findUnique({
+        where: {
+          id,
+        },
+      })) || null
+    );
   }
 
   async createTrack(track: Track): Promise<Track | number> {
     const trackId: string = uuidV4();
 
-    const created: Map<string, Track> = await this.client.insert({
-      ...track,
-      id: trackId,
+    const created: Track = await this.client.track.create({
+      data: {
+        ...track,
+        id: trackId,
+      },
     });
 
     if (created) {
-      return this.client.findById(trackId);
+      return this.client.track.findUnique({
+        where: {
+          id: trackId,
+        },
+      });
     }
 
     return 0;
   }
 
-  async deleteTrack(trackId: string): Promise<boolean | number> {
+  async deleteTrack(trackId: string): Promise<Track | number> {
     const track = (await this.getById(trackId)) || null;
 
     if (!track) {
       return 0;
     }
 
-    const deleted = await this.client.deleteById(trackId);
+    const deleted = await this.client.track.delete({ where: { id: trackId } });
 
     if (deleted) {
       this._tracksServiceEmitter.emit('track.deleted', { trackId });
+
+      return deleted;
     }
 
-    return deleted;
+    return 0;
   }
 
   async updateTrack(trackId: string, newData: Track): Promise<Track | number> {
@@ -65,7 +79,12 @@ export class TracksService {
       duration: newData.duration,
     };
 
-    const updated = await this.client.updateById(updatedTrack);
+    const updated = await this.client.track.update({
+      where: {
+        id: trackId,
+      },
+      data: updatedTrack,
+    });
 
     if (updated) {
       return updatedTrack;
@@ -74,48 +93,48 @@ export class TracksService {
     return 0;
   }
 
-  async getByArtistId(artistId: string): Promise<Track[] | []> {
-    const tracksAll = await this.client.findAll();
-
-    return (
-      tracksAll
-        ?.map(({ track }) => track)
-        .filter(({ artistId: trackArtistId }) => trackArtistId === artistId) ||
-      []
-    );
-  }
-
-  async getByAlbumsId(albumId: string): Promise<Track[] | []> {
-    const tracksAll = await this.client.findAll();
-
-    return (
-      tracksAll
-        ?.map(({ track }) => track)
-        .filter(({ albumId: trackAlbumId }) => trackAlbumId === albumId) || []
-    );
-  }
-
-  @OnEvent('artist.deleted')
-  async updateAllTracksWhenArtistDeleted({ artistId }: { artistId: string }) {
-    const tracksByArtist = await this.getByArtistId(artistId);
-
-    return tracksByArtist.map((track) =>
-      this.client.updateById({
-        ...track,
-        artistId: null,
-      }),
-    );
-  }
-
-  @OnEvent('album.deleted')
-  async updateAllTracksWhenAlbumDeleted({ albumId }: { albumId: string }) {
-    const tracksByAlbum = await this.getByAlbumsId(albumId);
-
-    return tracksByAlbum.map((track) =>
-      this.client.updateById({
-        ...track,
-        albumId: null,
-      }),
-    );
-  }
+  // async getByArtistId(artistId: string): Promise<Track[] | []> {
+  //   const tracksAll = await this.client.findAll();
+  //
+  //   return (
+  //     tracksAll
+  //       ?.map(({ track }) => track)
+  //       .filter(({ artistId: trackArtistId }) => trackArtistId === artistId) ||
+  //     []
+  //   );
+  // }
+  //
+  // async getByAlbumsId(albumId: string): Promise<Track[] | []> {
+  //   const tracksAll = await this.client.findAll();
+  //
+  //   return (
+  //     tracksAll
+  //       ?.map(({ track }) => track)
+  //       .filter(({ albumId: trackAlbumId }) => trackAlbumId === albumId) || []
+  //   );
+  // }
+  //
+  // @OnEvent('artist.deleted')
+  // async updateAllTracksWhenArtistDeleted({ artistId }: { artistId: string }) {
+  //   const tracksByArtist = await this.getByArtistId(artistId);
+  //
+  //   return tracksByArtist.map((track) =>
+  //     this.client.updateById({
+  //       ...track,
+  //       artistId: null,
+  //     }),
+  //   );
+  // }
+  //
+  // @OnEvent('album.deleted')
+  // async updateAllTracksWhenAlbumDeleted({ albumId }: { albumId: string }) {
+  //   const tracksByAlbum = await this.getByAlbumsId(albumId);
+  //
+  //   return tracksByAlbum.map((track) =>
+  //     this.client.updateById({
+  //       ...track,
+  //       albumId: null,
+  //     }),
+  //   );
+  // }
 }
