@@ -52,7 +52,16 @@ export class UsersService {
   async updateUser(
     userId: string,
     newData: UpdatePasswordDto,
-  ): Promise<{ id: string; login: string } | number> {
+  ): Promise<
+    | {
+        id: string;
+        login: string;
+        version: number;
+        createdAt: number;
+        updatedAt: number;
+      }
+    | number
+  > {
     const user: User = (await this.getById(userId)) || null;
 
     if (!user) {
@@ -63,7 +72,7 @@ export class UsersService {
       return StatusCodes.FORBIDDEN;
     }
 
-    const { id, login } = await this.client.user.update({
+    const updated = await this.client.user.update({
       where: {
         id: userId,
       },
@@ -74,9 +83,16 @@ export class UsersService {
       },
     });
 
-    return {
-      id,
-      login,
-    };
+    if (updated) {
+      return {
+        id: updated.id,
+        login: updated.login,
+        version: updated.version,
+        createdAt: Number(updated.createdAt),
+        updatedAt: Number(updated.updatedAt),
+      };
+    }
+
+    return 0;
   }
 }

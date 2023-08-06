@@ -1,39 +1,78 @@
-import { favoritesTable } from '../../db/in-memory';
 import { Album, Artist, FavoritesResponse, Track } from '../interfaces';
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { request } from '../../utils';
 
 @Injectable()
 export class FavoritesService {
-  constructor(private client: favoritesTable) {}
+  constructor(private client: PrismaService) {}
 
   async getAll(): Promise<FavoritesResponse> {
-    return this.client.findAll();
+    const [artistsNames, albumsNames, tracksNames] = await Promise.all([
+      this.client.favoriteArtists.findMany(),
+      this.client.favoriteAlbums.findMany(),
+      this.client.favoriteTracks.findMany(),
+    ]);
+
+    const [artists, albums, tracks] = await Promise.all([
+      this.client.artist.findMany({
+        where: { name: { in: artistsNames.map(({ name }) => name) } },
+      }),
+      this.client.album.findMany({
+        where: { name: { in: albumsNames.map(({ name }) => name) } },
+      }),
+      this.client.track.findMany({
+        where: { name: { in: tracksNames.map(({ name }) => name) } },
+      }),
+    ]);
+
+    console.log(artists);
+
+    return {
+      artists,
+      albums,
+      tracks,
+    };
   }
 
-  async createFavTrack(track: Track): Promise<Track | number> {
-    const created = await this.client.insertTrack(track);
+  async createFavTrack(track: Track): Promise<boolean | number> {
+    const created = await this.client.favoriteTracks.create({
+      data: {
+        id: track.id,
+        name: track.name,
+      },
+    });
 
     if (!created) {
       return 0;
     }
 
-    return track;
+    return true;
   }
 
-  async createFavArtist(artist: Artist): Promise<Artist | number> {
-    const created = await this.client.insertArtist(artist);
+  async createFavArtist(artist: Artist): Promise<boolean | number> {
+    const created = await this.client.favoriteArtists.create({
+      data: {
+        id: artist.id,
+        name: artist.name,
+      },
+    });
 
     if (!created) {
       return 0;
     }
 
-    return artist;
+    return true;
   }
 
   async createFavAlbum(album: Album): Promise<Album | number> {
-    const created = await this.client.insertAlbum(album);
+    const created = await this.client.favoriteAlbums.create({
+      data: {
+        id: album.id,
+        name: album.name,
+      },
+    });
 
     if (!created) {
       return 0;
@@ -42,50 +81,102 @@ export class FavoritesService {
     return album;
   }
 
-  async deleteTrack(track: Track): Promise<string[]> {
-    return this.client.deleteTrack(track);
-  }
+  async deleteTrack(track: Track): Promise<boolean | number> {
+    const searchTrack = await this.client.favoriteTracks.findUnique({
+      where: {
+        id: track.id,
+      },
+    });
 
-  async deleteArtist(artist: Artist): Promise<string[]> {
-    return this.client.deleteArtist(artist);
-  }
-
-  async deleteAlbum(album: Album): Promise<string[]> {
-    return this.client.deleteAlbum(album);
-  }
-
-  @OnEvent('artist.deleted')
-  async deleteArtistFromFavorites({ artistId }: { artistId: string }) {
-    const artist: Artist = await request(
-      'http://localhost:4000/artists',
-      'get',
-      artistId,
-    );
-
-    if (artist) {
-      await this.client.deleteArtist(artist);
+    if (!searchTrack) {
+      return 0;
     }
+
+    const deleted = await this.client.favoriteTracks.delete({
+      where: {
+        id: track.id,
+      },
+    });
+
+    return deleted ? true : 0;
   }
 
-  @OnEvent('album.deleted')
-  async deleteAlbumFromFavorites({ albumId }: { albumId: string }) {
-    const album: Album = await request(
-      'http://localhost:4000/albums',
-      'get',
-      albumId,
-    );
+  async deleteArtist(artist: Artist): Promise<boolean | number> {
+    const searchArtist = await this.client.favoriteAlbums.findUnique({
+      where: {
+        id: artist.id,
+      },
+    });
 
-    if (album) {
-      await this.client.deleteAlbum(album);
+    if (!searchArtist) {
+      return 0;
     }
+
+    const deleted = await this.client.favoriteArtists.delete({
+      where: {
+        id: artist.id,
+      },
+    });
+
+    return deleted ? true : 0;
   }
 
-  @OnEvent('track.deleted')
-  async deleteTrackFromFavorites({ trackId }: { trackId: string }) {
-    const track: Track = await request('http://localhost:4000', 'get', trackId);
+  async deleteAlbum(album: Album): Promise<boolean | number> {
+    const searchAlbum = await this.client.favoriteAlbums.findUnique({
+      where: {
+        id: album.id,
+      },
+    });
 
-    if (track) {
-      await this.client.deleteTrack(track);
+    if (!searchAlbum) {
+      return 0;
     }
+
+    const deleted = await this.client.favoriteAlbums.delete({
+      where: {
+        id: album.id,
+      },
+    });
+
+    return deleted ? true : 0;
   }
+
+  // @OnEvent('artist.deleted')
+  // async deleteArtistFromFavorites({ artistId }: { artistId: string }) {
+  //   const artist: Artist = await request(
+  //     'http://localhost:4000/artist',
+  //     'get',
+  //     artistId,
+  //   );
+  //
+  //   if (artist) {
+  //     await this.client.favoriteArtists.delete({ where: { id: artist.id } });
+  //   }
+  // }
+  //
+  // @OnEvent('album.deleted')
+  // async deleteAlbumFromFavorites({ albumId }: { albumId: string }) {
+  //   const album: Album = await request(
+  //     'http://localhost:4000/album',
+  //     'get',
+  //     albumId,
+  //   );
+  //
+  //   if (album) {
+  //     await this.client.favoriteAlbums.delete({ where: { id: album.id } });
+  //   }
+  // }
+  //
+  // @OnEvent('track.deleted')
+  // async deleteTrackFromFavorites({ trackId }: { trackId: string }) {
+  //   const track: Track = await request('http://localhost:4000', 'get', trackId);
+  //
+  //   if (track) {
+  //     await this.client.favoriteTracks.delete({
+  //       where: {
+  //         id: track.id,
+  //       },
+  //     });
+  //   }
+  // }
 }

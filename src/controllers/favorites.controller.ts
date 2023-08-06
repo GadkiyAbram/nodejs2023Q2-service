@@ -27,9 +27,9 @@ export class FavoritesController {
         .json({ msg: 'Invalid UUID provided' });
     }
 
-    const track = await request('http://localhost:4000/tracks', 'get', id);
+    const track = await request('http://localhost:4000/track', 'get', id);
 
-    if (!track) {
+    if (!track.id) {
       return res
         .header(HEADERS)
         .status(StatusCodes.UNPROCESSABLE_ENTITY)
@@ -50,9 +50,9 @@ export class FavoritesController {
         .json({ msg: 'Invalid UUID provided' });
     }
 
-    const album = await request('http://localhost:4000/albums', 'get', id);
+    const album = await request('http://localhost:4000/album', 'get', id);
 
-    if (!album) {
+    if (!album.id) {
       return res
         .header(HEADERS)
         .status(StatusCodes.UNPROCESSABLE_ENTITY)
@@ -73,9 +73,9 @@ export class FavoritesController {
         .json({ msg: 'Invalid UUID provided' });
     }
 
-    const artist = await request('http://localhost:4000/artists', 'get', id);
+    const artist = await request('http://localhost:4000/artist', 'get', id);
 
-    if (!artist) {
+    if (!artist.id) {
       return res
         .header(HEADERS)
         .status(StatusCodes.UNPROCESSABLE_ENTITY)
@@ -83,7 +83,6 @@ export class FavoritesController {
     }
 
     const artistFav = await this.favoritesService.createFavArtist(artist);
-    console.log(artistFav);
 
     return res.header(HEADERS).status(StatusCodes.CREATED).json(artistFav);
   }
@@ -102,7 +101,7 @@ export class FavoritesController {
         .json({ msg: 'Invalid UUID' });
     }
 
-    const track = await request('http://localhost:4000/tracks', 'get', id);
+    const track = await request('http://localhost:4000/track', 'get', id);
 
     if (!track) {
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();
@@ -130,7 +129,7 @@ export class FavoritesController {
         .json({ msg: 'Invalid UUID' });
     }
 
-    const artist = await request('http://localhost:4000/artists', 'get', id);
+    const artist = await request('http://localhost:4000/artist', 'get', id);
 
     if (!artist) {
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();
@@ -158,7 +157,7 @@ export class FavoritesController {
         .json({ msg: 'Invalid UUID' });
     }
 
-    const album = await request('http://localhost:4000/albums', 'get', id);
+    const album = await request('http://localhost:4000/album', 'get', id);
 
     if (!album) {
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();

@@ -3,6 +3,7 @@ import { Album } from '../interfaces';
 import { v4 as uuidV4 } from 'uuid';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
+import { request } from '../../utils';
 
 @Injectable()
 export class AlbumsService {
@@ -76,9 +77,7 @@ export class AlbumsService {
       where: {
         id: albumId,
       },
-      data: {
-        ...album,
-      },
+      data: updatedAlbum,
     });
 
     if (updated) {

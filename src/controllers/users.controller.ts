@@ -13,6 +13,7 @@ import { CreateUserDto, UpdatePasswordDto } from '../interfaces/dtos';
 import { isUUID } from 'class-validator';
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { User } from '../interfaces';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
@@ -76,12 +77,15 @@ export class UsersController {
         .status(StatusCodes.BAD_REQUEST)
         .json({ msg: 'Empty required fields' });
     }
-    const user = await this.usersService.createUser(userDto);
+    const { id, login, version, createdAt, updatedAt } =
+      await this.usersService.createUser(userDto);
 
     const result = {
-      ...user,
-      createdAt: String(user.createdAt),
-      updatedAt: String(user.updatedAt),
+      id: id,
+      login: login,
+      version: version,
+      createdAt: Number(createdAt),
+      updatedAt: Number(updatedAt),
     };
 
     return res.header(HEADERS).status(StatusCodes.CREATED).json(result);
@@ -128,8 +132,7 @@ export class UsersController {
         .json({ msg: 'Invalid UUID' });
     }
 
-    const result: { id: string; login: string } | number =
-      await this.usersService.updateUser(id, userDto);
+    const result = await this.usersService.updateUser(id, userDto);
 
     if (!result) {
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();

@@ -42,21 +42,24 @@ CREATE TABLE "tracks" (
 
 -- CreateTable
 CREATE TABLE "favartists" (
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
 
-    CONSTRAINT "favartists_pkey" PRIMARY KEY ("name")
+    CONSTRAINT "favartists_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "favalbums" (
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
 
-    CONSTRAINT "favalbums_pkey" PRIMARY KEY ("name")
+    CONSTRAINT "favalbums_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "favtracks" (
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
 
-    CONSTRAINT "favtracks_pkey" PRIMARY KEY ("name")
+    CONSTRAINT "favtracks_pkey" PRIMARY KEY ("id")
 );

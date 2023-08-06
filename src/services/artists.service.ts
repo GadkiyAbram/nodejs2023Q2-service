@@ -1,34 +1,46 @@
 import { Injectable } from '@nestjs/common';
-import { artistsTable } from '../../db/in-memory';
 import { Artist } from '../interfaces';
 import { v4 as uuidV4 } from 'uuid';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ArtistsService {
   constructor(
-    private client: artistsTable,
+    private client: PrismaService,
     private _artistsServiceEmitter: EventEmitter2,
   ) {}
 
-  async getAll(): Promise<{ id: string; artist: Artist }[]> {
-    return this.client.findAll();
+  async getAll(): Promise<Artist[] | []> {
+    return this.client.artist.findMany();
   }
 
   async getById(artistId: string): Promise<Artist | null> {
-    return (await this.client.findById(artistId)) || null;
+    return (
+      (await this.client.artist.findUnique({
+        where: {
+          id: artistId,
+        },
+      })) || null
+    );
   }
 
   async createArtist(artist: Artist): Promise<Artist | null | number> {
     const artistId: string = uuidV4();
 
-    const created = await this.client.insert({
-      ...artist,
-      id: artistId,
+    const created = await this.client.artist.create({
+      data: {
+        ...artist,
+        id: artistId,
+      },
     });
 
     if (created) {
-      return this.client.findById(artistId);
+      return this.client.artist.findUnique({
+        where: {
+          id: artistId,
+        },
+      });
     }
 
     return 0;
@@ -41,13 +53,20 @@ export class ArtistsService {
       return 0;
     }
 
-    const deleted = (await this.client.deleteById(artistId)) || 0;
+    const deleted =
+      (await this.client.artist.delete({
+        where: {
+          id: artistId,
+        },
+      })) || 0;
 
     if (deleted) {
       this._artistsServiceEmitter.emit('artist.deleted', { artistId });
+
+      return true;
     }
 
-    return deleted;
+    return 0;
   }
 
   async updateArtist(
@@ -66,7 +85,12 @@ export class ArtistsService {
       grammy: newData.grammy,
     };
 
-    const updated = await this.client.updateById(updatedArtist);
+    const updated = await this.client.artist.update({
+      where: {
+        id: artistId,
+      },
+      data: updatedArtist,
+    });
 
     if (updated) {
       return updatedArtist;

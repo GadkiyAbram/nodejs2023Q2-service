@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuidV4 } from 'uuid';
 import { Track } from '../interfaces';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
+import { request } from '../../utils';
 
 @Injectable()
 export class TracksService {
@@ -28,10 +29,24 @@ export class TracksService {
   async createTrack(track: Track): Promise<Track | number> {
     const trackId: string = uuidV4();
 
+    const artist = await request(
+      'http://localhost:4000/artist',
+      'get',
+      track?.artistId,
+    );
+
+    const album = await request(
+      'http://localhost:4000/album',
+      'get',
+      track?.albumId,
+    );
+
     const created: Track = await this.client.track.create({
       data: {
         ...track,
         id: trackId,
+        artistId: artist?.id,
+        albumId: album?.id,
       },
     });
 
@@ -116,24 +131,47 @@ export class TracksService {
   //
   // @OnEvent('artist.deleted')
   // async updateAllTracksWhenArtistDeleted({ artistId }: { artistId: string }) {
-  //   const tracksByArtist = await this.getByArtistId(artistId);
+  //   console.log(`artistId: ${artistId}`);
+  //   const tracksByArtist = await this.client.track.findMany({
+  //     where: {
+  //       artistId: {
+  //         in: [artistId],
+  //       },
+  //     },
+  //   });
+  //
+  //   console.log(tracksByArtist);
   //
   //   return tracksByArtist.map((track) =>
-  //     this.client.updateById({
-  //       ...track,
-  //       artistId: null,
+  //     this.client.track.update({
+  //       where: {
+  //         id: track.id,
+  //       },
+  //       data: {
+  //         ...track,
+  //         artistId: null,
+  //       },
   //     }),
   //   );
   // }
   //
   // @OnEvent('album.deleted')
   // async updateAllTracksWhenAlbumDeleted({ albumId }: { albumId: string }) {
-  //   const tracksByAlbum = await this.getByAlbumsId(albumId);
+  //   const tracksByAlbum = await this.client.track.findMany({
+  //     where: {
+  //       albumId,
+  //     },
+  //   });
   //
   //   return tracksByAlbum.map((track) =>
-  //     this.client.updateById({
-  //       ...track,
-  //       albumId: null,
+  //     this.client.track.update({
+  //       where: {
+  //         id: track.id,
+  //       },
+  //       data: {
+  //         ...track,
+  //         albumId: null,
+  //       },
   //     }),
   //   );
   // }
