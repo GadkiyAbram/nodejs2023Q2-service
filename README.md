@@ -21,13 +21,13 @@ npm install
 ## Running application from docker-compose in detached mode
 
 ```
-sudo docker compose up -d
+sudo docker-compose up -d
 ```
 
 ## Running application from docker-compose no detach mode (logs visible)
 
 ```
-sudo docker compose up
+sudo docker-compose up
 ```
 
 After starting the app on port (4000 as default) you can open
