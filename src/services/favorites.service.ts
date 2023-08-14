@@ -1,8 +1,6 @@
 import { Album, Artist, FavoritesResponse, Track } from '../interfaces';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { OnEvent } from '@nestjs/event-emitter';
-import { request } from '../../utils';
 
 @Injectable()
 export class FavoritesService {
@@ -26,8 +24,6 @@ export class FavoritesService {
         where: { name: { in: tracksNames.map(({ name }) => name) } },
       }),
     ]);
-
-    console.log(artists);
 
     return {
       artists,
@@ -140,43 +136,4 @@ export class FavoritesService {
 
     return deleted ? true : 0;
   }
-
-  // @OnEvent('artist.deleted')
-  // async deleteArtistFromFavorites({ artistId }: { artistId: string }) {
-  //   const artist: Artist = await request(
-  //     'http://localhost:4000/artist',
-  //     'get',
-  //     artistId,
-  //   );
-  //
-  //   if (artist) {
-  //     await this.client.favoriteArtists.delete({ where: { id: artist.id } });
-  //   }
-  // }
-  //
-  // @OnEvent('album.deleted')
-  // async deleteAlbumFromFavorites({ albumId }: { albumId: string }) {
-  //   const album: Album = await request(
-  //     'http://localhost:4000/album',
-  //     'get',
-  //     albumId,
-  //   );
-  //
-  //   if (album) {
-  //     await this.client.favoriteAlbums.delete({ where: { id: album.id } });
-  //   }
-  // }
-  //
-  // @OnEvent('track.deleted')
-  // async deleteTrackFromFavorites({ trackId }: { trackId: string }) {
-  //   const track: Track = await request('http://localhost:4000', 'get', trackId);
-  //
-  //   if (track) {
-  //     await this.client.favoriteTracks.delete({
-  //       where: {
-  //         id: track.id,
-  //       },
-  //     });
-  //   }
-  // }
 }

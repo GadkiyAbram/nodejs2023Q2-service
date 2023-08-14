@@ -1,38 +1,49 @@
 version: '3.9'
 services:
+  db:
+    image: postgres:13
+    ports:
+      - 5432:5432
+    restart: on-failure
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d homelibrary -U prismaadmin" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    environment:
+      POSTGRES_USER: prismaadmin
+      POSTGRES_PASSWORD: prismaadmin
+      POSTGRES_DB: homelibrary
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+    networks:
+      - homelibrary
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: nodejs2023q2-rest-service
+    command: npm run start:dev
     environment:
       - PORT=${PORT}
     ports:
       - ${PORT}:${PORT}
     depends_on:
+      db:
+        condition: service_healthy
+    links:
       - db
     volumes:
-      - ./src:/app/src
+      - .:/gadkiyabram/src/app
+      - /gadkiyabram/src/app/node_modules
       - ./logs:/home/logs
-    restart: on-failure
-    networks:
-      - homelibrary
-
-  db:
-    image: postgres:13
-    container_name: homelibrary_db
-    ports:
-      - ${DB_PORT}:${DB_PORT}
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${DATABASE_NAME}
-    volumes:
-      - ./db-data:/var/lib/postgresql/data:cached
+    restart: always
     networks:
       - homelibrary
 
 networks:
-    homelibrary:
-      driver: bridge
+  homelibrary:
+    name: homelibrary-network
+    driver: bridge
 

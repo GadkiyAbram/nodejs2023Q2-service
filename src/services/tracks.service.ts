@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuidV4 } from 'uuid';
 import { Track } from '../interfaces';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
 import { request } from '../../utils';
 
@@ -108,71 +108,49 @@ export class TracksService {
     return 0;
   }
 
-  // async getByArtistId(artistId: string): Promise<Track[] | []> {
-  //   const tracksAll = await this.client.findAll();
-  //
-  //   return (
-  //     tracksAll
-  //       ?.map(({ track }) => track)
-  //       .filter(({ artistId: trackArtistId }) => trackArtistId === artistId) ||
-  //     []
-  //   );
-  // }
-  //
-  // async getByAlbumsId(albumId: string): Promise<Track[] | []> {
-  //   const tracksAll = await this.client.findAll();
-  //
-  //   return (
-  //     tracksAll
-  //       ?.map(({ track }) => track)
-  //       .filter(({ albumId: trackAlbumId }) => trackAlbumId === albumId) || []
-  //   );
-  // }
-  //
-  // @OnEvent('artist.deleted')
-  // async updateAllTracksWhenArtistDeleted({ artistId }: { artistId: string }) {
-  //   console.log(`artistId: ${artistId}`);
-  //   const tracksByArtist = await this.client.track.findMany({
-  //     where: {
-  //       artistId: {
-  //         in: [artistId],
-  //       },
-  //     },
-  //   });
-  //
-  //   console.log(tracksByArtist);
-  //
-  //   return tracksByArtist.map((track) =>
-  //     this.client.track.update({
-  //       where: {
-  //         id: track.id,
-  //       },
-  //       data: {
-  //         ...track,
-  //         artistId: null,
-  //       },
-  //     }),
-  //   );
-  // }
-  //
-  // @OnEvent('album.deleted')
-  // async updateAllTracksWhenAlbumDeleted({ albumId }: { albumId: string }) {
-  //   const tracksByAlbum = await this.client.track.findMany({
-  //     where: {
-  //       albumId,
-  //     },
-  //   });
-  //
-  //   return tracksByAlbum.map((track) =>
-  //     this.client.track.update({
-  //       where: {
-  //         id: track.id,
-  //       },
-  //       data: {
-  //         ...track,
-  //         albumId: null,
-  //       },
-  //     }),
-  //   );
-  // }
+  @OnEvent('artist.deleted')
+  async updateAllTracksWhenArtistDeleted({ artistId }: { artistId: string }) {
+    const tracksByArtist = await this.client.track.findMany({
+      where: {
+        artistId: {
+          in: [artistId],
+        },
+      },
+    });
+
+    console.log(tracksByArtist);
+
+    return tracksByArtist.map((track) =>
+      this.client.track.update({
+        where: {
+          id: track.id,
+        },
+        data: {
+          ...track,
+          artistId: null,
+        },
+      }),
+    );
+  }
+
+  @OnEvent('album.deleted')
+  async updateAllTracksWhenAlbumDeleted({ albumId }: { albumId: string }) {
+    const tracksByAlbum = await this.client.track.findMany({
+      where: {
+        albumId,
+      },
+    });
+
+    return tracksByAlbum.map((track) =>
+      this.client.track.update({
+        where: {
+          id: track.id,
+        },
+        data: {
+          ...track,
+          albumId: null,
+        },
+      }),
+    );
+  }
 }
