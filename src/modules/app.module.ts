@@ -7,6 +7,7 @@ import {
   TracksModule,
   AlbumsModule,
   FavoritesModule,
+  LoggerModule,
 } from '../modules';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -24,6 +25,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     TracksModule,
     AlbumsModule,
     FavoritesModule,
+    LoggerModule,
   ],
 })
 export class AppModule {}

@@ -5,6 +5,7 @@ import { TracksModule } from './tracks.module';
 import { AlbumsModule } from './albums.module';
 import { FavoritesModule } from './favorites.module';
 import { ConfigModule } from '@nestjs/config';
+import { LoggerModule } from './logger.module';
 
 export {
   ConfigModule,
@@ -14,4 +15,5 @@ export {
   TracksModule,
   AlbumsModule,
   FavoritesModule,
+  LoggerModule,
 };

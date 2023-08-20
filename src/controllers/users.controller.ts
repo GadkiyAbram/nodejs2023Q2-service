@@ -6,23 +6,25 @@ import {
   Param,
   Post,
   Put,
+  Req,
   Res,
 } from '@nestjs/common';
-import { UsersService } from '../services';
+import { LoggerService, UsersService } from '../services';
 import { CreateUserDto, UpdatePasswordDto } from '../interfaces/dtos';
 import { isUUID } from 'class-validator';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { User } from '../interfaces';
+import { getUrl } from '../../utils';
 
 const HEADERS = { 'Content-Type': 'application/json' };
 
 @Controller('user')
 export class UsersController {
+  private loggingService = new LoggerService(UsersController.name);
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  async getAll(@Res() res: Response): Promise<Response> {
+  async getAll(@Res() res: Response, @Req() req: Request): Promise<Response> {
     const users = await this.usersService.getAll();
 
     const result = users.map((user) => {
@@ -33,19 +35,32 @@ export class UsersController {
       };
     });
 
+    this.loggingService.info({
+      url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+      response: result,
+      statusCode: StatusCodes.OK,
+    });
+
     return res.header(HEADERS).status(StatusCodes.OK).json(result);
   }
 
   @Get(':id')
   async getById(
     @Param('id') id: string,
+    @Req() req: Request,
     @Res() res: Response,
   ): Promise<Response> {
     if (!isUUID(id)) {
-      return res
-        .header(HEADERS)
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ msg: 'Invalid UUID provided' });
+      const response = { msg: 'Invalid UUID provided' };
+
+      this.loggingService.error({
+        url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+        params: req.params,
+        response,
+        statusCode: StatusCodes.BAD_REQUEST,
+      });
+
+      return res.header(HEADERS).status(StatusCodes.BAD_REQUEST).json(response);
     }
 
     const user = await this.usersService.getById(id);
@@ -57,8 +72,21 @@ export class UsersController {
         updatedAt: String(user.updatedAt),
       };
 
+      this.loggingService.info({
+        url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+        params: req.params,
+        response: result,
+        statusCode: StatusCodes.OK,
+      });
+
       return res.header(HEADERS).status(StatusCodes.OK).json(result);
     }
+
+    this.loggingService.info({
+      url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+      params: req.params,
+      statusCode: StatusCodes.NOT_FOUND,
+    });
 
     return res
       .header(HEADERS)
@@ -69,9 +97,19 @@ export class UsersController {
   @Post()
   async create(
     @Body() userDto: CreateUserDto,
+    @Req() req: Request,
     @Res() res: Response,
   ): Promise<Response> {
     if (!userDto.login || !userDto.password) {
+      const response = { msg: 'Empty required fields' };
+
+      this.loggingService.error({
+        url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+        params: req.params,
+        response,
+        statusCode: StatusCodes.BAD_REQUEST,
+      });
+
       return res
         .header(HEADERS)
         .status(StatusCodes.BAD_REQUEST)
@@ -88,28 +126,55 @@ export class UsersController {
       updatedAt: Number(updatedAt),
     };
 
+    this.loggingService.info({
+      url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+      params: req.params,
+      response: result,
+      statusCode: StatusCodes.CREATED,
+    });
+
     return res.header(HEADERS).status(StatusCodes.CREATED).json(result);
   }
 
   @Delete(':id')
   async delete(
     @Param('id') id: string,
+    @Req() req: Request,
     @Res() res: Response,
   ): Promise<Response> {
     const validUuid = isUUID(id);
 
     if (!validUuid) {
-      return res
-        .header(HEADERS)
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ msg: 'Invalid UUID' });
+      const response = { msg: 'Invalid UUID provided' };
+
+      this.loggingService.error({
+        url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+        params: req.params,
+        response,
+        statusCode: StatusCodes.BAD_REQUEST,
+      });
+
+      return res.header(HEADERS).status(StatusCodes.BAD_REQUEST).json(response);
     }
 
     const result = await this.usersService.deleteUser(id);
 
     if (!result) {
+      this.loggingService.error({
+        url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+        params: req.params,
+        statusCode: StatusCodes.BAD_REQUEST,
+      });
+
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();
     }
+
+    this.loggingService.info({
+      url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+      params: req.params,
+      response: result,
+      statusCode: StatusCodes.NO_CONTENT,
+    });
 
     return res
       .header(HEADERS)
@@ -121,26 +186,52 @@ export class UsersController {
   async put(
     @Param('id') id: string,
     @Body() userDto: UpdatePasswordDto,
+    @Req() req: Request,
     @Res() res: Response,
   ): Promise<Response> {
     const validUuid = isUUID(id);
 
     if (!validUuid || !userDto.newPassword || !userDto.oldPassword) {
-      return res
-        .header(HEADERS)
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ msg: 'Invalid UUID' });
+      const response = { msg: 'Invalid data provided' };
+
+      this.loggingService.error({
+        url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+        params: req.params,
+        response,
+        statusCode: StatusCodes.BAD_REQUEST,
+      });
+
+      return res.header(HEADERS).status(StatusCodes.BAD_REQUEST).json(response);
     }
 
     const result = await this.usersService.updateUser(id, userDto);
 
     if (!result) {
+      this.loggingService.error({
+        url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+        params: req.params,
+        statusCode: StatusCodes.NOT_FOUND,
+      });
+
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();
     }
 
     if (result === StatusCodes.FORBIDDEN) {
+      this.loggingService.error({
+        url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+        params: req.params,
+        statusCode: result,
+      });
+
       return res.header(HEADERS).status(result).json();
     }
+
+    this.loggingService.info({
+      url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
+      params: req.params,
+      response: result,
+      statusCode: StatusCodes.NO_CONTENT,
+    });
 
     return res.header(HEADERS).status(StatusCodes.OK).json(result);
   }

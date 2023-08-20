@@ -19,11 +19,12 @@ async function setupSwagger(app) {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: false,
+  });
   await setupSwagger(app);
 
   console.log(`Server started on port ${PORT}`);
-
   await app.listen(PORT);
 }
 bootstrap();

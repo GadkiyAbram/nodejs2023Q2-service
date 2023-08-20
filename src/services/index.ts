@@ -6,6 +6,7 @@ import { TracksService } from './tracks.service';
 import { AlbumsService } from './albums.service';
 import { FavoritesService } from './favorites.service';
 import { ConfigService } from '@nestjs/config';
+import { LoggerService } from './logger.service';
 
 export {
   ConfigService,
@@ -16,4 +17,5 @@ export {
   TracksService,
   AlbumsService,
   FavoritesService,
+  LoggerService,
 };
