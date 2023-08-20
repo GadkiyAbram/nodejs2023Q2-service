@@ -3,6 +3,7 @@ import { logLevels as levels, actions } from '../../consts';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as process from 'process';
+import { config } from 'dotenv';
 
 type LogRecord = {
   url: string;
@@ -13,6 +14,9 @@ type LogRecord = {
 };
 
 export type LogLevel = 'info' | 'error' | 'warn' | 'debug' | 'verbose';
+
+config();
+const loFileMaxSize = Number(process.env.LOG_FILE_SIZE_MB) * 1024;
 
 @Injectable()
 export class LoggerService {
@@ -33,11 +37,24 @@ export class LoggerService {
   private static instance?: typeof LoggerService = LoggerService;
 
   constructor(@Optional() private readonly context?: string) {
-    this.handleLogFile(actions.CLEAR);
+    this.handleLogFile(actions.REMOVE_LOG_DIR);
 
     if (!fs.existsSync(LoggerService.logDirPath)) {
       this.handleLogFile(actions.CREATE);
     }
+  }
+
+  private static rotateLogFile() {
+    const timeStamp = this.getTimeStamp().replace(/:/g, '-');
+
+    const rotatedFilePath = path.join(
+      __dirname,
+      `../../logs/logs - ${timeStamp}.txt`,
+    );
+
+    fs.renameSync(this.logFilePath, rotatedFilePath);
+
+    fs.writeFileSync(this.logFilePath, '');
   }
 
   private static getTimeStamp(): string {
@@ -45,6 +62,11 @@ export class LoggerService {
   }
 
   private static writeToFile(message: string) {
+    const stats = fs.statSync(this.logFilePath);
+    if (stats.size >= loFileMaxSize) {
+      this.rotateLogFile();
+    }
+
     const formattedMessage = `TIME: ${this.getTimeStamp()}\n${message}\n\n`;
     fs.appendFile(this.logFilePath, formattedMessage, (err) => {
       if (err) {
@@ -54,29 +76,20 @@ export class LoggerService {
   }
 
   info(data: LogRecord): void {
-    // const logMessage = `LEVEL: ${levels.INFO}\nDATA: ${JSON.stringify(data)}`;
-    const logMessage = this.prepareRecord(levels.INFO, JSON.stringify(data));
-
-    this.callFunction(levels.INFO, logMessage);
-
-    // this.writeToFile(logMessage);
-    // this.logToStdOut(logMessage);
+    this.callFunction(levels.INFO, data);
   }
 
   error(data: LogRecord): void {
-    // const logMessage = `LEVEL: ${levels.ERROR}\nDATA: ${JSON.stringify(data)}`;
-    const logMessage = this.prepareRecord(levels.ERROR, JSON.stringify(data));
-
-    this.callFunction(levels.ERROR, logMessage);
-
-    // this.writeToFile(logMessage);
-    // this.logToStdOut(logMessage);
+    this.callFunction(levels.ERROR, data);
   }
 
-  private callFunction(name: LogLevel, message: any) {
+  private callFunction(name: LogLevel, data: any) {
     if (!this.isLogLevelEnabled(name)) {
       return;
     }
+
+    const message = this.prepareRecord(levels.INFO, JSON.stringify(data));
+
     const instance = this.getInstance();
     const func = instance && (instance as typeof LoggerService)[name];
     func && func.call(instance, message);
@@ -97,6 +110,10 @@ export class LoggerService {
   private async handleLogFile(action: string): Promise<any[]> {
     const promises = [];
 
+    if (action === actions.REMOVE_LOG_DIR) {
+      promises.push(this.removeDirectory());
+    }
+
     if (action === actions.CREATE) {
       promises.push(
         fs.mkdirSync(LoggerService.logDirPath),
@@ -109,6 +126,22 @@ export class LoggerService {
     }
 
     return Promise.allSettled(promises);
+  }
+
+  private async removeDirectory() {
+    if (fs.existsSync(LoggerService.logDirPath)) {
+      fs.readdirSync(LoggerService.logDirPath).forEach((file) => {
+        const filePath = path.join(LoggerService.logDirPath, file);
+
+        if (fs.statSync(filePath).isDirectory()) {
+          this.removeDirectory();
+        } else {
+          fs.unlinkSync(filePath);
+        }
+      });
+
+      fs.rmdirSync(LoggerService.logDirPath);
+    }
   }
 
   private prepareRecord(level: string, data: string) {
