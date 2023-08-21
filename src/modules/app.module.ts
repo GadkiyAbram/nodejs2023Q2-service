@@ -11,9 +11,15 @@ import {
 } from '../modules';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from '../prisma/prisma.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    AuthModule,
+    JwtModule.register({
+      secret: 'my-secret-key',
+      signOptions: { expiresIn: '1h' },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),

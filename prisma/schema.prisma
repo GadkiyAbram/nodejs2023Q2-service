@@ -14,7 +14,7 @@ model User {
   @@map("users")
 
   id String @id
-  login String
+  login String @unique
   password String
   version Int @default(1)
   createdAt BigInt

@@ -13,11 +13,20 @@ export class UsersService {
   }
 
   async getById(id: string): Promise<User | null> {
-    console.log(id);
     return (
       (await this.client.user.findUnique({
         where: {
           id,
+        },
+      })) || null
+    );
+  }
+
+  async getByName(login: string): Promise<User | null> {
+    return (
+      (await this.client.user.findUnique({
+        where: {
+          login,
         },
       })) || null
     );

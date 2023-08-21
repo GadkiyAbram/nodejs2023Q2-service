@@ -163,7 +163,7 @@ export class UsersController {
       this.loggingService.error({
         url: `${getUrl(req.protocol, req.get('host'), req.originalUrl)}`,
         params: req.params,
-        statusCode: StatusCodes.BAD_REQUEST,
+        statusCode: StatusCodes.NOT_FOUND,
       });
 
       return res.header(HEADERS).status(StatusCodes.NOT_FOUND).json();

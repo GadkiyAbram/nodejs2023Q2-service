@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { LoggerService } from './logger.service';
+import { JwtAuthGuard } from './jwt.auth.guard';
 
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {
@@ -28,12 +29,18 @@ export class HttpErrorFilter implements ExceptionFilter {
           : 'Internal server error',
     };
 
+    if (exception.message === JwtAuthGuard.UNAUTHORIZED_MESSAGE) {
+      response.status(401).json({ message: 'Unauthorized' });
+    } else {
+      response.status(403).json({ message: 'Forbidden' });
+    }
+
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
       LoggerService.error(`${request.method} ${request.url}`);
     } else {
       LoggerService.error(`${request.method} ${request.url}`);
     }
 
-    response.status(status).json(errorResponse);
+    response.status(status).json(errorResponse).json();
   }
 }
