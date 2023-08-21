@@ -8,7 +8,8 @@
 ## Downloading
 
 ```
-git clone {repository URL}
+git clone https://github.com/GadkiyAbram/nodejs2023Q2-service
+git checkout feature/nodejs2023Q2-service-week-2
 ```
 
 ## Installing NPM modules
@@ -17,14 +18,20 @@ git clone {repository URL}
 npm install
 ```
 
-## Running application
+## Running application from docker-compose in detached mode
 
 ```
-npm start
+sudo docker-compose up -d
+```
+
+## Running application from docker-compose no detach mode (logs visible)
+
+```
+sudo docker-compose up
 ```
 
 After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
+in your browser OpenAPI documentation by typing http://localhost:4000/api/.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
 ## Testing
