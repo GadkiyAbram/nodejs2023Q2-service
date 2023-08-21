@@ -40,6 +40,7 @@ export class AuthController {
     }
 
     const user = await this.authService.validateUser(login, password);
+    console.log(user);
 
     if (!user) {
       return res

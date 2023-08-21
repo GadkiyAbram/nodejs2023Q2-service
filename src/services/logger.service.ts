@@ -6,7 +6,7 @@ import * as process from 'process';
 import { config } from 'dotenv';
 
 type LogRecord = {
-  url: string;
+  url?: string;
   body?: object;
   params?: object;
   statusCode: number;

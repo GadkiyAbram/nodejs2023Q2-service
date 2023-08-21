@@ -5,6 +5,11 @@ import { readFile } from 'fs/promises';
 import { load as loadYaml } from 'js-yaml';
 import { config } from 'dotenv';
 import * as process from 'process';
+import {
+  LoggerService,
+  UncaughtExceptionHandler,
+  UnhandledRejectionHandler,
+} from './services';
 
 config();
 
@@ -22,7 +27,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: false,
   });
+  const uncaughtExceptionHandler = new UncaughtExceptionHandler();
+  const unhandledRejectionHandler = new UnhandledRejectionHandler();
+
   await setupSwagger(app);
+
+  process.on('uncaughtException', (error) => {
+    uncaughtExceptionHandler.handle(error);
+  });
+
+  process.on('unhandledRejectionException', (error) => {
+    unhandledRejectionHandler.handle(error);
+  });
 
   console.log(`Server started on port ${PORT}`);
   await app.listen(PORT);

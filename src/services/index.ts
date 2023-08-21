@@ -7,6 +7,8 @@ import { AlbumsService } from './albums.service';
 import { FavoritesService } from './favorites.service';
 import { ConfigService } from '@nestjs/config';
 import { LoggerService } from './logger.service';
+import { UncaughtExceptionHandler } from './errorHandlers/uncaughtExceptionHandler';
+import { UnhandledRejectionHandler } from './errorHandlers/unhandledRejectionHandler';
 
 export {
   ConfigService,
@@ -18,4 +20,6 @@ export {
   AlbumsService,
   FavoritesService,
   LoggerService,
+  UncaughtExceptionHandler,
+  UnhandledRejectionHandler,
 };

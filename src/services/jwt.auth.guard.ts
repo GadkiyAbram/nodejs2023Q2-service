@@ -8,6 +8,17 @@ export class JwtAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
+
+    console.log(request.headers);
+    console.log(request.url);
+
+    if (
+      request.url.includes('/auth/login') ||
+      request.url.includes('/auth/signup')
+    ) {
+      return true;
+    }
+
     const token = request.headers.authorization?.split(' ') ?? [];
 
     if (!token) {
